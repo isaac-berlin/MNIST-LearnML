@@ -65,8 +65,10 @@ class NeuralNet(torch.nn.Module):
         
         return out
     
-# Create the model
-model = LogReg(784, 10).to(device)
+# Define constants and Create the model
+SIZE_IMG = len(new_train_dataset[0][0])
+NUM_OUTCOMES = 10 # 10 digits as possible outcomes (0,1,2,3,4,5,6,7,8,9)
+model = LogReg(SIZE_IMG, NUM_OUTCOMES).to(device)
 
 # Define the loss function and optimizer
 loss_function = torch.nn.CrossEntropyLoss()
