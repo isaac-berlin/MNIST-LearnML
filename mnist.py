@@ -37,6 +37,12 @@ test_loader = torch.utils.data.DataLoader(dataset=new_test_dataset, batch_size=6
 
 # Define the model
 # Logistic regression model
+'''
+Logistic regression is not the ideal model to solve this problem
+Instead, it's good for:
+ - Binary classification
+ - Linear classification
+'''
 class LogReg(torch.nn.Module):
     def __init__(self, input_size, num_classes):
         super(LogReg, self).__init__()
@@ -45,7 +51,7 @@ class LogReg(torch.nn.Module):
         
     def forward(self, x):
         out = self.linear(x)
-        out = torch.sigmoid(out)
+        out = torch.softmax(out)
         
         return out
     
@@ -101,3 +107,26 @@ for epoch in range(num_epochs):
         
         print(loss.item())
 
+# Check accuracy on test to see how good our model is
+with torch.no_grad():
+    num_correct = 0
+    num_samples = 0
+    
+    for data, targets in test_loader:
+        # Get the data to cuda if possible
+        data = data.to(device=device)
+        targets = targets.to(device=device)
+        
+        # Get the correct shape
+        data = data.reshape(data.shape[0], -1)
+        
+        # forward
+        scores = model(data)
+        
+        # Get predictions
+        _, predictions = scores.max(1)
+        
+        num_correct += (predictions == targets).sum()
+        num_samples += predictions.size(0)
+        
+    print(f'Got {num_correct}/{num_samples} with accuracy {float(num_correct)/float(num_samples)*100:.2f}')
