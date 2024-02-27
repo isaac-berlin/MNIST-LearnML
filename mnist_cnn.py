@@ -92,10 +92,6 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         
-        if (i+1) % 100 == 0:
-            print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}')
-            
-
 # Test the model
 with torch.no_grad():
     n_correct = 0
@@ -110,6 +106,5 @@ with torch.no_grad():
         n_samples += labels.size(0)
         n_correct += (predicted == labels).sum().item()
         
-    acc = 100.0 * n_correct / n_samples
-    print(f'Accuracy of the network on the 10000 test images: {acc} %')
+    print(f'Got {n_correct}/{n_samples} with accuracy {float(n_correct)/float(n_samples)*100:.2f}')
 

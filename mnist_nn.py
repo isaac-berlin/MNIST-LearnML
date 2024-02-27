@@ -104,8 +104,6 @@ for epoch in range(num_epochs):
         
         # gradient descent or adam step
         optimizer.step()
-        
-        print(loss.item())
 
 # Check accuracy on test to see how good our model is
 with torch.no_grad():
