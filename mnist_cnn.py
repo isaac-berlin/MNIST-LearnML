@@ -107,4 +107,3 @@ with torch.no_grad():
         n_correct += (predicted == labels).sum().item()
         
     print(f'Got {n_correct}/{n_samples} with accuracy {float(n_correct)/float(n_samples)*100:.2f}')
-
