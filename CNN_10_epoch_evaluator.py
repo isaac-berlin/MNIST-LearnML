@@ -18,6 +18,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 t = transforms.Compose([
     transforms.ToTensor(), # convert the image to a pytorch tensor
 ])
+# TODO:: apply augmentations here
 
 # Define the model Class
 # create a CNN model
