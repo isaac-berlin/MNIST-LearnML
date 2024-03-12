@@ -3,7 +3,9 @@ import torch.nn as nn
 import numpy as np
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
+import os
 
 
 
@@ -72,9 +74,12 @@ model = CNN(28*28, NUM_OUTCOMES).to(device)
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+# Set up TensorBoard writer
+writer = SummaryWriter(os.path.join('runs', 'MNIST_experiment'))
+
 # Train the model
 n_total_steps = len(train_loader)
-num_epochs = 2
+num_epochs = 11
 
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
@@ -92,18 +97,27 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         
-# Test the model
-with torch.no_grad():
-    n_correct = 0
-    n_samples = 0
-    for images, labels in test_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        outputs = model(images)
+        # Log loss to TensorBoard
+        writer.add_scalar('Training loss', loss.item(), epoch * len(train_loader) + i)
         
-        # max returns (value, index)
-        _, predicted = torch.max(outputs, 1)
-        n_samples += labels.size(0)
-        n_correct += (predicted == labels).sum().item()
-        
-    print(f'Got {n_correct}/{n_samples} with accuracy {float(n_correct)/float(n_samples)*100:.2f}')
+    # Test the model
+    with torch.no_grad():
+        n_correct = 0
+        n_samples = 0
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+            
+            # max returns (value, index)
+            _, predicted = torch.max(outputs, 1)
+            n_samples += labels.size(0)
+            n_correct += (predicted == labels).sum().item()
+            
+        print(f'After {epoch} epochs, Got {n_correct}/{n_samples} with accuracy {float(n_correct)/float(n_samples)*100:.2f}')
+
+# Close TensorBoard writer
+writer.close()
+
+# Save the 10-epoch-trained model 
+torch.save(model.state_dict(), 'CNN_10_epoch.pth')
