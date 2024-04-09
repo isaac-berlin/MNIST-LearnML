@@ -9,7 +9,7 @@ from ignite.engine import create_supervised_evaluator
 from ignite.metrics import Accuracy
 import os
 from torch.utils.tensorboard import SummaryWriter
-
+from copy import deepcopy
 
 NUM_OUTCOMES = 10
 
@@ -17,11 +17,40 @@ NUM_OUTCOMES = 10
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Define the transforms for the data
+
 train_transform = transforms.Compose([
+    transforms.ToTensor(), # convert the image to a pytorch tensor
+])
+
+# TODO:: apply augmentations here
+'''
+train_transform = transforms.Compose([
+    transforms.RandomRotation(degrees=15),  # Random rotation by up to 15 degrees
+    transforms.RandomErasing(),  # Random erasing
+    transforms.GaussianBlur(kernel_size=5),  # Apply Gaussian blur
+    transforms.ToTensor(), # convert the image to a pytorch tensor
+])
+'''
+
+train_rotation_transform = transforms.Compose([
+    transforms.RandomRotation(degrees=15),  # Random rotation by up to 15 degrees
+    transforms.ToTensor(), # convert the image to a pytorch tensor
+])
+
+train_gaussian_blur_transform = transforms.Compose([
+    transforms.GaussianBlur(kernel_size=5),  # Apply Gaussian blur
+    transforms.ToTensor(), # convert the image to a pytorch tensor
+])
+
+train_random_erasing_transform = transforms.Compose([
+    transforms.RandomErasing(),  # Random erasing
+    transforms.ToTensor(), # convert the image to a pytorch tensor
+])
+
+train_random_affine_transform = transforms.Compose([
     transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # Randomly translate the image horizontally and vertically by up to 10% of its size
     transforms.ToTensor(), # convert the image to a pytorch tensor
 ])
-# TODO:: apply augmentations here
 
 test_transform = transforms.Compose([
     transforms.ToTensor(),
@@ -29,6 +58,19 @@ test_transform = transforms.Compose([
 
 # Load the MNIST training dataset
 train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=train_transform)
+
+# Create a new dataset for augmented images
+rotation_images = deepcopy(train_dataset)
+rotation_images.transform = train_rotation_transform
+blur_images = deepcopy(train_dataset)
+blur_images.transform = train_gaussian_blur_transform
+affine_images = deepcopy(train_dataset)
+affine_images.transform = train_random_affine_transform
+erase_images = deepcopy(train_dataset)
+erase_images.transform = train_random_erasing_transform
+
+# Concatenate the original dataset and the augmented dataset
+train_dataset = torch.utils.data.ConcatDataset([train_dataset, rotation_images, blur_images, affine_images, erase_images])
 
 # Load the MNIST test dataset
 test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=test_transform)
